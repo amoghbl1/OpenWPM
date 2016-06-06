@@ -1,0 +1,12 @@
+tr{
+ overflow: "hidden";
+}
+
+tr > td{
+  max-width: 20%;
+}
+
+table{
+  max-width: 90%;
+}
+ 
