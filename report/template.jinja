@@ -14,65 +14,73 @@
             @import "https://securehomes.esat.kuleuven.be/~gacar/jscss/css/demo_page.css";
             @import "https://securehomes.esat.kuleuven.be/~gacar/jscss/css/demo_table.css";
         </style>
-            <script type="text/javascript" charset="utf-8">
-                {% raw %}<!-- Everything in here will be left untouched by Jinja2 -->
-                $(document).ready(function() {
+        <script type="text/javascript" language="javascript" src="Chart.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            {% raw %}<!-- Everything in here will be left untouched by Jinja2 -->
+            $(document).ready(function() {
                     $('#general_results').dataTable( {
                         "aaSorting": [[ 1, "desc" ]],
                         "iDisplayLength": -1,
                         "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
                         "sDom": '<l<"centered"f><"floatright"p>>rt'
-                    } );
+                        } );
                     $('#canvas_fp_urls').dataTable( {
                         "aaSorting": [[ 1, "desc" ]],
                         "iDisplayLength": -1,
                         "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
                         "sDom": '<l<"centered"f><"floatright"p>>rt'
-                    } );
+                        } );
                     $(function() {
                         $( "#tabs" ).tabs({
-                          //event: "mouseover"
+                            //event: "mouseover"
+                            });
                         });
                     });
-                } );
-                {% endraw %}
-    </script>
+            {% endraw %}
+        </script>
         <title>{{ title }}</title>
     </head>
     <body>
         <div id="tabs">
             <ul>
                 <li><a href="#tabs-1">Overview</a></li>
-                <li><a href="#tabs-2">Tab2</a></li>
-                <li><a href="#tabs-3">Tab3</a></li>
+                <li><a href="#tabs-2">Website Results</a></li>
+                <li><a href="#tabs-3">Script Results</a></li>
                 <li><a href="#tabs-4">Tab4</a></li>
             </ul>
             <div id="tabs-1">
-              <h2>Overview</h2>
-                <ul>
-                    <li>Crawl date</li>
-                    <li>Number of sites</li>
-                </ul>
+                <div style="display: inline-block;">
+                    <h2>Overview</h2>
+                    <ul>
+                        {% for i in overview %}
+                        <li>{{i[0]}} : {{i[1]}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div style="width: 100%; height: 100%; display: inline-block;">
+                    <canvas id="myChart" style="width: 100%; height: auto;"></canvas>
+                </div>
+                <div id="js-legend" class="chart-legend"></div>
             </div> <!--tabs-1 -->
-        
+
             <div id="tabs-2">
-                <h1>Results: {{ len_rows }}</h1>
+                <h1>Results: {{ general_rows|length }}</h1>
                 <table class="table table-striped" id="general_results">
                     <thead>
                         <tr class="row">
-                            {% for h in headings %}
+                            {% for h in general_headings %}
                             <th>{{h}}</th>
                             {% endfor %}
                         </tr>
                     </thead>
-                    {% for r in rows %}
+                    {% for r in general_rows %}
                     <tr class="row">
                         {% for c in r %}
-                            {% if loop.index in [2, 3] %}
-                            <td><a href="{{c}}">{{c}}</a></td>
-                            {% else %}
-                            <td>{{c}}</td>
-                            {% endif %}
+                        {% if loop.index in [2, 3] %}
+                        <td><a href="{{c}}">{{c}}</a></td>
+                        {% else %}
+                        <td>{{c}}</td>
+                        {% endif %}
                         {% endfor %}
                     </tr>
                     {% endfor %}
@@ -80,11 +88,31 @@
             </div> <!--tabs-2 -->
 
             <div id="tabs-3">
-            Placeholder
+                <h1>All Scripts: {{ scripts_rows|length }}</h1>
+                <table class="table table-striped" id="scripts_results">
+                    <thead>
+                        <tr class="row">
+                            {% for h in scripts_headings %}
+                            <th>{{h}}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    {% for r in scripts_rows %}
+                    <tr class="row">
+                        {% for c in r %}
+                        {% if loop.index in [2, 3] %}
+                        <td><a href="{{c}}">{{c}}</a></td>
+                        {% else %}
+                        <td>{{c}}</td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
             </div> <!--tabs-3 -->
 
             <div id="tabs-4">
-            Placeholder
+                Placeholder
             </div> <!--tabs-4 -->
         </div>
     </body>

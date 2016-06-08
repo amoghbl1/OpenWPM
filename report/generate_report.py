@@ -4,9 +4,10 @@ import jinja2
 import sqlite3
 from time import time
 from _collections import defaultdict
-SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
-SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
+#SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
+#SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
 # SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
+SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
 
 TEMPLATE_FILE = "./template.jinja"
 OUTPUT_FILE = "./output.html"
@@ -15,10 +16,14 @@ def make_output(headings, rows):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(TEMPLATE_FILE)
+    overview, all_scripts = get_stats(rows)
+    all_scripts_information, all_scripts_headings = get_all_information(all_scripts)
     templateVars = { "title" : "Mobile JS scripts",
-            "headings" : headings,
-            "rows" : rows,
-            "len_rows" : len(rows)}
+            "general_headings" : headings,
+            "general_rows" : rows,
+            "scripts_headings" : all_scripts_headings,
+            "scripts_rows" : all_scripts_information,
+            "overview" : overview}
     outputText = template.render( templateVars )
     with open(OUTPUT_FILE, 'w') as f:
         f.write(outputText)
@@ -37,6 +42,22 @@ def print_script_freq_dist(script_freqs):
     for script_url, url_set in script_freqs.iteritems():
         if len(url_set) > 10:
             print script_url, len(url_set)
+
+# Returns all the information of each site, based on the ids
+def get_all_information(script_urls):
+    info = []
+
+    for script_url in script_urls:
+        qry = """
+        SELECT *
+        FROM javascript
+        WHERE script_url ==
+        """ + "'" + script_url + "'"
+        script_details, headings = db_query(qry)
+        for i in script_details:
+            info.append(i)
+    print script_urls
+    return info, headings
 
 def get_stats(rows):
     all_sites = set()
@@ -79,16 +100,18 @@ def get_stats(rows):
             devicemotion_sites.add(site_url)
             script_freq_devicemotion[script_url].add(site_url)
 
-    print "Total sites", len(all_sites)
-    print "Total scripts", len(all_scripts)
-    print "deviceorientation scripts", len(deviceorientation_scripts)
-    print "deviceorientation sites", len(deviceorientation_sites)
-    print "devicelight scripts", len(devicelight_scripts)
-    print "devicelight sites", len(devicelight_sites)
-    print "deviceproximity scripts", len(deviceproximity_scripts)
-    print "deviceproximity sites", len(deviceproximity_sites)
-    print "devicemotion scripts", len(devicemotion_scripts)
-    print "devicemotion sites", len(devicemotion_sites)
+    stats = []
+    stats.append(("Total sites", len(all_sites)))
+    stats.append(("Total scripts", len(all_scripts)))
+    stats.append(("deviceorientation scripts", len(deviceorientation_scripts)))
+    stats.append(("deviceorientation sites", len(deviceorientation_sites)))
+    stats.append(("devicelight scripts", len(devicelight_scripts)))
+    stats.append(("devicelight sites", len(devicelight_sites)))
+    stats.append(("deviceproximity scripts", len(deviceproximity_scripts)))
+    stats.append(("deviceproximity sites", len(deviceproximity_sites)))
+    stats.append(("devicemotion scripts", len(devicemotion_scripts)))
+    stats.append(("devicemotion sites", len(devicemotion_sites)))
+
     for freq_set in [script_freq,
                      script_freq_deviceorientation,
                      script_freq_devicelight,
@@ -96,6 +119,7 @@ def get_stats(rows):
                      script_freq_devicemotion]:
         print "********"
         print_script_freq_dist(freq_set)
+    return stats, all_scripts
 
 def generate_report():
     qry_all_sensor_access ="""SELECT site_visits.visit_id, site_visits.site_url, javascript.script_url,
