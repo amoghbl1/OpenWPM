@@ -26,7 +26,7 @@ def make_output(headings, rows):
             "overview" : overview}
     outputText = template.render( templateVars )
     with open(OUTPUT_FILE, 'w') as f:
-        f.write(outputText)
+        f.write(outputText.encode('utf-8').strip())
 
 def db_query(qry_str):
     connection = sqlite3.connect(SQLITE_FILE)
