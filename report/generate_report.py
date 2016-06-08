@@ -4,8 +4,8 @@ import jinja2
 import sqlite3
 from time import time
 from _collections import defaultdict
-#SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
-#SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
+# SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
+# SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
 # SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
 SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
 
@@ -17,7 +17,7 @@ def make_output(headings, rows):
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(TEMPLATE_FILE)
     overview, all_scripts = get_stats(rows)
-    all_scripts_information, all_scripts_headings = get_all_information(all_scripts)
+    all_scripts_information, all_scripts_headings = get_calls_by_scripts(all_scripts)
     templateVars = { "title" : "Mobile JS scripts",
             "general_headings" : headings,
             "general_rows" : rows,
@@ -43,21 +43,21 @@ def print_script_freq_dist(script_freqs):
         if len(url_set) > 10:
             print script_url, len(url_set)
 
-# Returns all the information of each site, based on the ids
-def get_all_information(script_urls):
-    info = []
-
-    for script_url in script_urls:
-        qry = """
+# Returns all the information of each script, based on the ids
+def get_calls_by_scripts(script_urls):
+    calls = []
+    qry = """
         SELECT *
         FROM javascript
-        WHERE script_url ==
-        """ + "'" + script_url + "'"
-        script_details, headings = db_query(qry)
-        for i in script_details:
-            info.append(i)
+        WHERE script_url"""
+    all_script_calls, headings = db_query(qry)
+    for script_calls in all_script_calls:
+        pass
+        #for i in script_details:
+        #    calls.append(i)
+        # add callsby this script to a set
     print script_urls
-    return info, headings
+    return calls, headings
 
 def get_stats(rows):
     all_sites = set()
