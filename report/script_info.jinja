@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <script type="text/javascript" language="javascript" src="https://securehomes.esat.kuleuven.be/~gacar/jscss/jquery-1.9.1.min.js"></script>
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/redmond/jquery-ui.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+        <script type="text/javascript" language="javascript" src="https://securehomes.esat.kuleuven.be/~gacar/jscss/jquery.dataTables.min.js"></script>
+        <link href="https://securehomes.esat.kuleuven.be/~gacar/jscss/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://securehomes.esat.kuleuven.be/~gacar/jscss/css/bootstrap-theme.min.css" rel="stylesheet">
+        <link href="https://securehomes.esat.kuleuven.be/~gacar/jscss/css/theme.css" rel="stylesheet">
+        <link href="../style.css" rel="stylesheet">
+        <style type="text/css" title="currentStyle">
+            @import "https://securehomes.esat.kuleuven.be/~gacar/jscss/css/demo_page.css";
+            @import "https://securehomes.esat.kuleuven.be/~gacar/jscss/css/demo_table.css";
+        </style>
+        <script type="text/javascript" language="javascript" src="../Chart.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            {% raw %}<!-- Everything in here will be left untouched by Jinja2 -->
+            $(document).ready(function() {
+                    $('#general_results').dataTable( {
+                        "aaSorting": [[ 1, "desc" ]],
+                        "iDisplayLength": -1,
+                        "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
+                        "sDom": '<l<"centered"f><"floatright"p>>rt'
+                        } );
+                    $('#canvas_fp_urls').dataTable( {
+                        "aaSorting": [[ 1, "desc" ]],
+                        "iDisplayLength": -1,
+                        "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
+                        "sDom": '<l<"centered"f><"floatright"p>>rt'
+                        } );
+                    $(function() {
+                        $( "#tabs" ).tabs({
+                            //event: "mouseover"
+                            });
+                        });
+                    });
+            {% endraw %}
+        </script>
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <div id="tabs">
+            <div id="tabs-1">
+                <h1>Results: {{ general_rows|length }}</h1>
+                <table class="table table-striped" id="general_results">
+                    <thead>
+                        <tr class="row">
+                            {% for h in general_headings %}
+                            <th>{{h}}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    {% for r in general_rows %}
+                    <tr class="row">
+                        {% for c in r %}
+                        {% if loop.index in [2, 3] %}
+                        <td><a href="{{c}}">{{c}}</a></td>
+                        {% else %}
+                        <td>{{c}}</td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div> <!--tabs-2 -->
+        </div>
+    </body>
+</html>

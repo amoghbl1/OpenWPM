@@ -11,22 +11,40 @@ SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
 
 TEMPLATE_FILE = "./template.jinja"
 OUTPUT_FILE = "./output.html"
+SCRIPT_INFO_JINJA = "./script_info.jinja"
+SCRIPT_INFO_OUTPUT = "./script_details/"
 
 def make_output(headings, rows):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
     templateEnv = jinja2.Environment(loader=templateLoader)
     template = templateEnv.get_template(TEMPLATE_FILE)
+    script_info_template = templateEnv.get_template(SCRIPT_INFO_JINJA)
     overview, all_scripts = get_stats(rows)
-    all_scripts_information, all_scripts_headings = get_calls_by_scripts(all_scripts)
+    # Information and headings are shown on the first page, details are shown on the script specific pages.
+    all_scripts_information, all_scripts_headings, all_scripts_details = get_calls_by_scripts(all_scripts)
     templateVars = { "title" : "Mobile JS scripts",
             "general_headings" : headings,
             "general_rows" : rows,
             "scripts_headings" : all_scripts_headings,
             "scripts_rows" : all_scripts_information,
             "overview" : overview}
-    outputText = template.render( templateVars )
+    outputText = template.render(templateVars)
     with open(OUTPUT_FILE, 'w') as f:
         f.write(outputText.encode('utf-8').strip())
+    script_id = 0
+    for script_url in all_scripts_details:
+        script_details = all_scripts_details.get(script_url)
+        headings = []
+        rows = []
+        for i in script_details:
+            rows.append(i)
+        templateVars = { "title" : "Information about: " + script_url,
+                "general_headings" : headings,
+                "general_rows" : rows}
+        outputText = script_info_template.render(templateVars)
+        with open(SCRIPT_INFO_OUTPUT+str(script_id)+".html", 'w') as f:
+            f.write(outputText.encode('utf-8').strip())
+        script_id += 1
 
 def db_query(qry_str):
     connection = sqlite3.connect(SQLITE_FILE)
@@ -45,19 +63,31 @@ def print_script_freq_dist(script_freqs):
 
 # Returns all the information of each script, based on the ids
 def get_calls_by_scripts(script_urls):
-    calls = []
+    calls_overview = []
+    script_call_count = defaultdict(int)
+    script_call_details = defaultdict(set)
     qry = """
         SELECT *
         FROM javascript
-        WHERE script_url"""
+        """
     all_script_calls, headings = db_query(qry)
-    for script_calls in all_script_calls:
-        pass
-        #for i in script_details:
-        #    calls.append(i)
-        # add callsby this script to a set
-    print script_urls
-    return calls, headings
+    script_id=0
+    for script_call in all_script_calls:
+        script_url = script_call[3]
+        if script_url in script_urls:
+            script_call_count[script_url] += 1
+            # Assign a uniqe ID for the script
+            if script_call_count[script_url] == 1:
+                script_id += 1
+            # Add myself to the dictionary of this url
+            script_call_details[script_url].add(script_call)
+
+    script_id = 0
+    headings=("Script URL", "Number of calls", "More information")
+    for i in script_call_count:
+        calls_overview.append((i, script_call_count.get(i), script_id))
+        script_id += 1
+    return calls_overview, headings, script_call_details
 
 def get_stats(rows):
     all_sites = set()
