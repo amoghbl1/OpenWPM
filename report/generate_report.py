@@ -6,13 +6,19 @@ from time import time
 from _collections import defaultdict
 # SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
 # SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
-# SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
-SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
+SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
+# SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
 
 TEMPLATE_FILE = "./template.jinja"
 OUTPUT_FILE = "./output.html"
 SCRIPT_INFO_JINJA = "./script_info.jinja"
 SCRIPT_INFO_OUTPUT = "./script_details/"
+
+
+def write_to_file(path, txt):
+    with open(path, 'w') as f:
+        f.write(txt)
+
 
 def make_output(headings, rows):
     templateLoader = jinja2.FileSystemLoader(searchpath="./")
@@ -20,17 +26,18 @@ def make_output(headings, rows):
     template = templateEnv.get_template(TEMPLATE_FILE)
     script_info_template = templateEnv.get_template(SCRIPT_INFO_JINJA)
     overview, all_scripts = get_stats(rows)
-    # Information and headings are shown on the first page, details are shown on the script specific pages.
-    all_scripts_information, all_scripts_headings, all_scripts_details = get_calls_by_scripts(all_scripts)
-    templateVars = { "title" : "Mobile JS scripts",
-            "general_headings" : headings,
-            "general_rows" : rows,
-            "scripts_headings" : all_scripts_headings,
-            "scripts_rows" : all_scripts_information,
-            "overview" : overview}
-    outputText = template.render(templateVars)
-    with open(OUTPUT_FILE, 'w') as f:
-        f.write(outputText.encode('utf-8').strip())
+    # Information and headings are shown on the first page
+    # details are shown on the script specific pages.
+    all_scripts_information, all_scripts_headings, all_scripts_details =\
+        get_calls_by_scripts(all_scripts)
+    template_vars = {"title": "Mobile JS scripts",
+                     "general_headings": headings,
+                     "general_rows": rows,
+                     "scripts_headings": all_scripts_headings,
+                     "scripts_rows": all_scripts_information,
+                     "overview": overview}
+    output_text = template.render(template_vars)
+    write_to_file(OUTPUT_FILE, output_text.encode('utf-8').strip())
 
     script_id = 0
 
@@ -39,15 +46,16 @@ def make_output(headings, rows):
         rows = []
         for i in script_details:
             rows.append(i)
-        templateVars = { "title" : "Information about: " + script_url,
-                        "general_headings" : headings,
-                        "general_rows" : rows}
-        outputText = script_info_template.render(templateVars)
+        js_template_vars = {"title": "Information about: " + script_url,
+                            "general_headings": headings,
+                            "general_rows": rows}
+        output_text = script_info_template.render(js_template_vars)
         if not os.path.isdir(SCRIPT_INFO_OUTPUT):
-            os.makedirs(SCRIPT_INFO_OUTPUT)
-        with open(SCRIPT_INFO_OUTPUT + str(script_id) + ".html", 'w') as f:
-            f.write(outputText.encode('utf-8').strip())
+            os.mkdir(SCRIPT_INFO_OUTPUT)
+        js_file_name = "%s%s.html" % (SCRIPT_INFO_OUTPUT, str(script_id))
+        write_to_file(js_file_name, output_text.encode('utf-8').strip())
         script_id += 1
+
 
 def db_query(qry_str, fetch_rows=True):
     connection = sqlite3.connect(SQLITE_FILE)
@@ -60,10 +68,12 @@ def db_query(qry_str, fetch_rows=True):
     print "Query took", (time() - t0), "sec"
     return rows, headings
 
+
 def print_script_freq_dist(script_freqs):
     for script_url, url_set in script_freqs.iteritems():
         if len(url_set) > 10:
             print script_url, len(url_set)
+
 
 # Returns all the information of each script, based on the ids
 def get_calls_by_scripts(script_urls):
@@ -71,7 +81,7 @@ def get_calls_by_scripts(script_urls):
     script_call_count = defaultdict(int)
     script_call_details = defaultdict(set)
     qry = """SELECT * FROM javascript"""
-    all_script_calls, headings = db_query(qry, fetch_rows=False)
+    all_script_calls, _ = db_query(qry, fetch_rows=False)
     script_id = 0
     for script_call in all_script_calls:
         script_url = script_call[3]
@@ -84,11 +94,12 @@ def get_calls_by_scripts(script_urls):
             script_call_details[script_url].add(script_call)
 
     script_id = 0
-    headings=("Script URL", "Number of calls", "More information")
+    headings = ("Script URL", "Number of calls", "More information")
     for i in script_call_count:
         calls_overview.append((i, script_call_count.get(i), script_id))
         script_id += 1
     return calls_overview, headings, script_call_details
+
 
 def get_stats(rows):
     all_sites = set()
@@ -152,23 +163,28 @@ def get_stats(rows):
         print_script_freq_dist(freq_set)
     return stats, all_scripts
 
+
 def generate_report():
-    qry_all_sensor_access ="""SELECT site_visits.visit_id, site_visits.site_url, javascript.script_url,
-             javascript.parameter_value, javascript.symbol, script_line, script_col
-             FROM site_visits, javascript
-             WHERE parameter_index = 0 AND javascript.visit_id==site_visits.visit_id
-             AND symbol
-             LIKE 'window.addEventListener' AND
-             parameter_value IN ('deviceorientation', 'devicelight', 'deviceproximity', 'devicemotion')
-             GROUP BY javascript.script_url, site_visits.site_url, javascript.parameter_value
-             ORDER BY javascript.script_url"""
+    qry_all_sensor_access = """SELECT site_visits.visit_id, site_visits.site_url,
+            javascript.script_url, javascript.parameter_value,
+            javascript.symbol, script_line, script_col
+            FROM site_visits, javascript
+            WHERE parameter_index = 0 AND
+            javascript.visit_id==site_visits.visit_id
+            AND symbol LIKE 'window.addEventListener' AND
+            parameter_value IN
+            ('deviceorientation', 'devicelight',
+            'deviceproximity', 'devicemotion')
+            GROUP BY javascript.script_url, site_visits.site_url,
+            javascript.parameter_value
+            ORDER BY javascript.script_url"""
     rows, headings = db_query(qry_all_sensor_access)
-    get_stats(rows)
-    #headings = list(map(lambda x: x[0], rows.description))
+    # get_stats(rows)
     make_output(headings, rows)
+
 
 def main():
     generate_report()
 
 if __name__ == '__main__':
-      main()
+    main()
