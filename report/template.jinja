@@ -100,8 +100,8 @@
                     {% for r in scripts_rows %}
                     <tr class="row">
                         {% for c in r %}
-                        {% if loop.index in [2, 3] %}
-                        <td><a href="{{c}}">{{c}}</a></td>
+                        {% if loop.index == 3 %}
+                        <td><a href="script_details/{{c}}.html">{{c}}</a></td>
                         {% else %}
                         <td>{{c}}</td>
                         {% endif %}

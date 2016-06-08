@@ -31,28 +31,32 @@ def make_output(headings, rows):
     outputText = template.render(templateVars)
     with open(OUTPUT_FILE, 'w') as f:
         f.write(outputText.encode('utf-8').strip())
+
     script_id = 0
-    for script_url in all_scripts_details:
-        script_details = all_scripts_details.get(script_url)
+
+    for script_url, script_details in all_scripts_details.iteritems():
         headings = []
         rows = []
         for i in script_details:
             rows.append(i)
         templateVars = { "title" : "Information about: " + script_url,
-                "general_headings" : headings,
-                "general_rows" : rows}
+                        "general_headings" : headings,
+                        "general_rows" : rows}
         outputText = script_info_template.render(templateVars)
-        with open(SCRIPT_INFO_OUTPUT+str(script_id)+".html", 'w') as f:
+        if not os.path.isdir(SCRIPT_INFO_OUTPUT):
+            os.makedirs(SCRIPT_INFO_OUTPUT)
+        with open(SCRIPT_INFO_OUTPUT + str(script_id) + ".html", 'w') as f:
             f.write(outputText.encode('utf-8').strip())
         script_id += 1
 
-def db_query(qry_str):
+def db_query(qry_str, fetch_rows=True):
     connection = sqlite3.connect(SQLITE_FILE)
     print qry_str
     t0 = time()
     rows = connection.execute(qry_str)
     headings = list(map(lambda x: x[0], rows.description))
-    rows = rows.fetchall()
+    if fetch_rows:
+        rows = rows.fetchall()
     print "Query took", (time() - t0), "sec"
     return rows, headings
 
@@ -66,12 +70,9 @@ def get_calls_by_scripts(script_urls):
     calls_overview = []
     script_call_count = defaultdict(int)
     script_call_details = defaultdict(set)
-    qry = """
-        SELECT *
-        FROM javascript
-        """
-    all_script_calls, headings = db_query(qry)
-    script_id=0
+    qry = """SELECT * FROM javascript"""
+    all_script_calls, headings = db_query(qry, fetch_rows=False)
+    script_id = 0
     for script_call in all_script_calls:
         script_url = script_call[3]
         if script_url in script_urls:
