@@ -90,6 +90,10 @@ def get_calls_by_scripts(script_urls, script_popularity_count):
     for script_call in all_script_calls:
         script_url = script_call[3]
         if script_url in script_urls:
+            # set of symbols if not  addeventlistener
+            # if addeventlistener
+            # if parameter_index = 0
+            # parameter_value
             script_call_count[script_url] += 1
             # Assign a uniqe ID for the script
             if script_call_count[script_url] == 1:
@@ -188,7 +192,9 @@ def generate_report():
 
 
 def main():
+    t0 = time()
     generate_report()
+    print "Generating report took", (time() - t0), "sec"
 
 if __name__ == '__main__':
     main()
