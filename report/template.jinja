@@ -100,11 +100,13 @@
                     {% for r in scripts_rows %}
                     <tr class="row">
                         {% for c in r %}
-                        {% if loop.index == 4 %}
-                        <td><a href="script_details/{{c}}.html">{{c}}</a></td>
-                        {% else %}
-                        <td>{{c}}</td>
-                        {% endif %}
+                            {% if loop.index == 1 %}
+                            <td><a href="script_details/{{r[3]}}.html">{{c}} </a><a href="{{c}}"> Link To Script</a></td>
+                            {% elif loop.index == 4 %}
+                            <!---null--->
+                            {% else %}
+                            <td>{{c}}</td>
+                            {% endif %}
                         {% endfor %}
                     </tr>
                     {% endfor %}

@@ -6,8 +6,8 @@ from time import time
 from _collections import defaultdict
 # SQLITE_FILE = os.path.expanduser("~/openwpm/100k_16browsers/crawl-data.sqlite")
 # SQLITE_FILE = os.path.expanduser("~/openwpm/100k_32browsers/crawl-data.sqlite")
-SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
-# SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
+# SQLITE_FILE = os.path.expanduser("~/openwpm/13k_8browsers/crawl-data.sqlite")
+SQLITE_FILE = os.path.expanduser("~/openwpm/crawl-data.sqlite")
 
 TEMPLATE_FILE = "./template.jinja"
 OUTPUT_FILE = "./output.html"
@@ -98,7 +98,7 @@ def get_calls_by_scripts(script_urls, script_popularity_count):
             script_call_details[script_url].add(script_call)
 
     script_id = 0
-    headings = ("Script URL", "Popularity (# Sites found on)", "Number of calls", "More information")
+    headings = ("Script URL", "Popularity (# Sites found on)", "Number of calls")
     for i in script_call_count:
         calls_overview.append((i, script_popularity_count.get(i), script_call_count.get(i), script_id))
         script_id += 1
