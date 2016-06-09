@@ -20,8 +20,12 @@ def make_output(headings, rows):
     template = templateEnv.get_template(TEMPLATE_FILE)
     script_info_template = templateEnv.get_template(SCRIPT_INFO_JINJA)
     overview, all_scripts = get_stats(rows)
+    # Get script popularity to add to the rows
+    counts = defaultdict(int)
+    for row in rows:
+        counts[row[2]] += 1
     # Information and headings are shown on the first page, details are shown on the script specific pages.
-    all_scripts_information, all_scripts_headings, all_scripts_details = get_calls_by_scripts(all_scripts)
+    all_scripts_information, all_scripts_headings, all_scripts_details = get_calls_by_scripts(all_scripts, counts)
     templateVars = { "title" : "Mobile JS scripts",
             "general_headings" : headings,
             "general_rows" : rows,
@@ -66,7 +70,7 @@ def print_script_freq_dist(script_freqs):
             print script_url, len(url_set)
 
 # Returns all the information of each script, based on the ids
-def get_calls_by_scripts(script_urls):
+def get_calls_by_scripts(script_urls, script_popularity_count):
     calls_overview = []
     script_call_count = defaultdict(int)
     script_call_details = defaultdict(set)
@@ -84,9 +88,9 @@ def get_calls_by_scripts(script_urls):
             script_call_details[script_url].add(script_call)
 
     script_id = 0
-    headings=("Script URL", "Number of calls", "More information")
+    headings=("Script URL", "Popularity (# Sites found on)", "Number of calls", "More information")
     for i in script_call_count:
-        calls_overview.append((i, script_call_count.get(i), script_id))
+        calls_overview.append((i, script_popularity_count.get(i), script_call_count.get(i), script_id))
         script_id += 1
     return calls_overview, headings, script_call_details
 

@@ -24,7 +24,7 @@
                         "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
                         "sDom": '<l<"centered"f><"floatright"p>>rt'
                         } );
-                    $('#canvas_fp_urls').dataTable( {
+                    $('#scripts_results').dataTable( {
                         "aaSorting": [[ 1, "desc" ]],
                         "iDisplayLength": -1,
                         "aLengthMenu": [[50, 100, -1], [50, 100, "All"]],
@@ -100,7 +100,7 @@
                     {% for r in scripts_rows %}
                     <tr class="row">
                         {% for c in r %}
-                        {% if loop.index == 3 %}
+                        {% if loop.index == 4 %}
                         <td><a href="script_details/{{c}}.html">{{c}}</a></td>
                         {% else %}
                         <td>{{c}}</td>
